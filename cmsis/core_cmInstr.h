@@ -208,7 +208,55 @@ __attribute__((section(".revsh_text"))) __STATIC_INLINE __ASM int32_t __REVSH(in
  */
 #define __STREXH(value, ptr)              __strex(value, ptr)
 
+X_FLAGS)
 
+set(TARGET_NAME ${PROJECT_NAME})
+
+# Set compiler and utility path (actual if arm-none-eabi is not in PATH env variable)
+set(ARM_TOOLCHAIN_PATH $ENV{ARM_TOOLCHAIN_PATH})
+# Choose ld file for your MCU carefully
+set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f103c8.ld")
+set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_PATH}arm-none-eabi-gcc)
+set(OBJCOPY ${ARM_TOOLCHAIN_PATH}arm-none-eabi-objcopy)
+set(STFLASH st-flash)
+
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build)
+
+set(CMAKE_EXECUTABLE_SUFFIX ".elf")
+
+set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -std=c99")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections -ffunction-sections -mlittle-endian -g3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-move-loop-invariants -fsigned-char -ffreestanding")
+
+set(LINKER_FLAGS "-nostdlib -nostartfiles")
+set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -Map -Xlinker ${TARGET_NAME}.map ")
+# Choose ld file X_FLAGS)
+
+set(TARGET_NAME ${PROJECT_NAME})
+
+# Set compiler and utility path (actual if arm-none-eabi is not in PATH env variable)
+set(ARM_TOOLCHAIN_PATH $ENV{ARM_TOOLCHAIN_PATH})
+# Choose ld file for your MCU carefully
+set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f103c8.ld")
+set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_PATH}arm-none-eabi-gcc)
+set(OBJCOPY ${ARM_TOOLCHAIN_PATH}arm-none-eabi-objcopy)
+set(STFLASH st-flash)
+
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build)
+
+set(CMAKE_EXECUTABLE_SUFFIX ".elf")
+
+set(CMAKE_C_FLAGS "-mcpu=cortex-m3 -mthumb -std=c99")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fdata-sections -ffunction-sections -mlittle-endian -g3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-move-loop-invariants -fsigned-char -ffreestanding")
+
+set(LINKER_FLAGS "-nostdlib -nostartfiles")
+set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -Map -Xlinker ${TARGET_NAME}.map ")
+# Choose ld file for your MCU carefully
+set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f103c8.ld")for your MCU carefully
+set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f103c8.ld")
 /** \brief  STR Exclusive (32 bit)
 
     This function performs a exclusive STR command for 32 bit values.

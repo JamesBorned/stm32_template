@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 # Disable compiler checking
-# Otherwise it will fall with `reference to _exit() not found` error
+# Otherwise it will fall with `reference to _exit() not found error
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
@@ -14,6 +14,8 @@ set(TARGET_NAME ${PROJECT_NAME})
 
 # Set compiler and utility path (actual if arm-none-eabi is not in PATH env variable)
 set(ARM_TOOLCHAIN_PATH $ENV{ARM_TOOLCHAIN_PATH})
+# Choose ld file for your MCU carefully
+set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f103c8.ld")
 set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_PATH}arm-none-eabi-gcc)
 set(OBJCOPY ${ARM_TOOLCHAIN_PATH}arm-none-eabi-objcopy)
 set(STFLASH st-flash)
