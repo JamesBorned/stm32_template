@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
 # Disable compiler checking
-# Otherwise it will fall with `reference to _exit() not found error
+# Otherwise it will fall with `reference to _exit() not found` error
 set(CMAKE_C_COMPILER_WORKS 1)
 set(CMAKE_CXX_COMPILER_WORKS 1)
 
-project(stm32_template)
+project(stm32_experiments)
 
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
@@ -14,8 +14,6 @@ set(TARGET_NAME ${PROJECT_NAME})
 
 # Set compiler and utility path (actual if arm-none-eabi is not in PATH env variable)
 set(ARM_TOOLCHAIN_PATH $ENV{ARM_TOOLCHAIN_PATH})
-# Choose ld file for your MCU carefully
-set(LINKER_FLAGS "${LINKER_FLAGS} -Xlinker -T ${CMAKE_CURRENT_SOURCE_DIR}/stm32f103c8.ld")
 set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_PATH}arm-none-eabi-gcc)
 set(OBJCOPY ${ARM_TOOLCHAIN_PATH}arm-none-eabi-objcopy)
 set(STFLASH st-flash)
@@ -48,12 +46,16 @@ add_definitions(-DSTM32F10X_MD)
 
 include_directories(cmsis)
 include_directories(stm32)
+include_directories(custom_lib/utils)
+add_subdirectory(custom_lib)
 
 set(SOURCE_FILES
     stm32/startup/startup_stm32f10x_md.c # Choose startup file for your MCU
     stm32/system_stm32f10x.c
     syscalls/syscalls.c
+    custom_lib/src/utils.c
     main.c)
+
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/.gdbinit DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 
@@ -82,3 +84,5 @@ add_custom_command(OUTPUT flash_target
         DEPENDS ${BIN_TARGET})
 
 add_custom_target(flash DEPENDS flash_target)
+
+# target_link_libraries(${PROJECT_NAME} custom)
