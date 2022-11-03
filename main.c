@@ -138,7 +138,7 @@ int __attribute((noreturn)) main(void) {
 void TIM2_IRQHandler(void)
 {
 	if(TIM2->SR & TIM_SR_CC1IF){
-		GPIOC_BSSR
+		//GPIOC_BSSR
 	}
 	if (TIM2->SR & TIM_SR_UIF) { // SR - status register
 		GPIOC->BSRR = ((GPIOC->ODR & GPIO_ODR_ODR13) << 16) | (~GPIOC->ODR & GPIO_ODR_ODR13);
