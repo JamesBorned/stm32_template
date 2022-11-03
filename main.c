@@ -16,7 +16,7 @@ void delay_us(uint32_t us){
 			"beq _exit\r\n"
 			"sub R0, R0, #1\r\n"
 			"nop\r\n"
-			"b_loop\r\n"
+			"b _loop\r\n"
 		"_exit:\r\n"
 		"pop {r0}\r\n"
 		::"r"(9*us)
@@ -104,9 +104,10 @@ int __attribute((noreturn)) main(void) {
     GPIOA->ODR |= GPIO_ODR_ODR0; //enable PC14 Pull-up (for DOWN)
 
 	RCC->APB1ENR = RCC_APB1ENR_TIM2EN;
-	TIM2->PSC = 35999;						// tick of timer is one millisecond
+	TIM2->PSC = 1;						// tick of timer is one millisecond
 	TIM2->ARR = 1000;						// 
-	TIM2->DIER = TIM_DIER_UIE;				// update interrupt enable 
+	TIM2->CR1 = 2000;
+	TIM2->DIER = TIM_DIER_UIE|				// update interrupt enable 
 	NVIC_ClearPendingIRQ(TIM2_IRQn);
 	NVIC_EnableIRQ(TIM2_IRQn);
 	TIM2->CR1 |= TIM_CR1_CEN;
@@ -121,9 +122,13 @@ int __attribute((noreturn)) main(void) {
 		// }
 		_Bool btn_state = !(GPIOC->IDR & (1 << 14U));
 		if (btn_state && !btn_prev_state) {
-			TIM2->CR1 &= ~TIM_CR1_CEN;	//stop
-		} else {
-			TIM2->CR1 |= TIM_CR1_CEN;	//start
+			if (TIM2->CR1 & TIM_CR1_CEN){ // if  0 in TIM2->CR1
+				TIM2->CR1 &= ~TIM_CR1_CEN;	//stop
+		
+			} 
+			else {
+				TIM2->CR1 |= TIM_CR1_CEN;	//start
+			}
 		}
 		btn_prev_state = btn_state;
 		delay_us(10000); // 10ms
@@ -132,6 +137,9 @@ int __attribute((noreturn)) main(void) {
 
 void TIM2_IRQHandler(void)
 {
+	if(TIM2->SR & TIM_SR_CC1IF){
+		GPIOC_BSSR
+	}
 	if (TIM2->SR & TIM_SR_UIF) { // SR - status register
 		GPIOC->BSRR = ((GPIOC->ODR & GPIO_ODR_ODR13) << 16) | (~GPIOC->ODR & GPIO_ODR_ODR13);
 		TIM2->SR &= ~TIM_SR_UIF;
