@@ -202,14 +202,14 @@ int __attribute((noreturn)) main(void) {
 	delay(1000); // Wait <1ms
 
 	cmd(0xA2); //LCD Drive set 1/9 bias
-	cmd(0xA0); // RAM Address SEG Output normal
+	cmd(0xA0); // RAM Address SEG Output normal (forced update)
 	cmd(0x28 | 0x07); // Power control mode
 	cmd(0x20 | 0x05); // Voltage regulator
 	cmd(0xA6); // Normal color, A7 = inverse color
 	cmd(0xAF); // Display on
 	//cmd(0x40); // go home
 	cmd(0xb0 | 0x00);
-	cmd(0x40); // go home
+	//cmd(0x40); // go home
 	for(int j=0; j<66; ++j){
 		dat(0x0F);
 	for (int i=0; i<133; ++i){
