@@ -25,6 +25,8 @@ void delay_us(uint32_t us){
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
+uint8_t LCD_Buf[8][128];
+
 void SPI1_Write(uint8_t data)
 {
 //Ждем, пока не освободится буфер передатчика
@@ -114,7 +116,29 @@ SPI1->CR1 &= ~(SPI_CR1_CPOL | SPI_CR1_CPHA); //Режим работы SPI: CPOL
 SPI1->CR1 |= SPI_CR1_SPE; //Включаем SPI
 }
 
-int __attribute((noreturn)) main(void) {
+void DrawPixel(uint8_t x, uint8_t y){ // x in [0..63], y in [0..127]
+  uint8_t page_address = (x >> 3) & 0b00000111; // %8 guarantees page_address in [0..7]
+  cmd(0xB0 | page_address); // Set Page page_address (Pages 0x00...0x0F)
+  cmd(y & 0b00001111); // Set column address LSB
+  cmd(0b00010000 | (y >> 4));
+  dat(1 << (x % 8));
+}
+
+void DrawChess(){
+  uint8_t i,j,k; // i=row number, j=col number, k=cycle inside a square
+  uint8_t val = 0x00; // Color 0x00=White strip, 0xFF=black strip
+  for(i=0; i<=7; i++){
+    cmd(0xB0 | i); // Set Page i (Pages 0x00...0x0F)
+    val = ~ val;
+    for(j=0; j<=15; j++){
+      for(k=0; k<=7; k++) dat(val);
+      val = ~val;
+    }
+    cmd(0xEE);
+  }
+}
+
+/*int __attribute((noreturn)) main(void) {
 	#if 0
 	// Enable clock for AFIO
 	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
@@ -252,5 +276,60 @@ void TIM2_IRQHandler(void){
 		GPIOC->BSRR = ((GPIOC->ODR & GPIO_ODR_ODR13) << 16) | (~GPIOC->ODR & GPIO_ODR_ODR13);
 		TIM2->SR &= ~TIM_SR_UIF;
 	}
-}
+}*/
 
+int main(void) {
+	// Enable clock for GPIOC
+	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+	// Enable PC13 push-pull mode
+	GPIOC->CRH &= ~GPIO_CRH_CNF13; //clear cnf bits
+	GPIOC->CRH |= GPIO_CRH_MODE13_0; //Max speed = 10Mhz
+
+  SPI1_Init();
+  GPIOA->ODR &= ~GPIO_ODR_ODR4; // CS=0
+  GPIOA->ODR &= ~GPIO_ODR_ODR2; // RESET=0
+  delay(10000); // Wait for the power stabilized
+  GPIOA->ODR |= GPIO_ODR_ODR2; // RESET=1
+  delay(1000);
+
+  cmd(0xA2); //LCD Drive set 1/9 bias
+  cmd(0xA0); // RAM Address SEG Output normal
+  cmd(0xC8); // Common outout mode selection
+  cmd(0x28 | 0x07); // Power control mode
+  cmd(0b00100000 | 0x05); // Voltage regulator
+  cmd(0xA6); // Normal color, A7 = inverse color
+  cmd(0xAF); // Display on
+  cmd(0x40 | 0x00); // Set start line address (Lines 0x00...0x3F)
+  memset(LCD_Buf, 0, sizeof(int8_t) * 8 * 128);
+  for(int k=0; k<=7; k++){ // Clear DRAM
+    cmd(0xB0 | k); // Set Page 0 (Pages 0x00...0x0F)
+    for(int i=0; i<=127; i++){
+        dat(LCD_Buf[k][i]);
+    }
+    cmd(0xEE); // End writing to the page, return the page address back
+  }
+
+  // Setting the page address:
+  //cmd(0xB0 | 0x00); // Set Page 0 (Pages 0x00...0x0F)
+  //
+  // Setting the line address:
+  //cmd(0x10 | 0x00); // Set column address MSB (0x00...0x0F)
+  //cmd(0x00); // Set column address LSB (0x00...0x0F)
+
+  /*for(int i=0; i<64; i++)
+    for(int j=0; j<128; j++)
+      DrawPixel(i,j);
+  */
+
+  DrawChess();
+  
+  //delay(10000000);
+  //cmd(0x40 | 0x01); // Set start line address (Lines 0x00...0x3F)
+  
+    while (1) { // LED blinking
+	    GPIOC->ODR |= (1U<<13U); //U -- unsigned suffix (to avoid syntax warnings in IDE)
+		delay(1000000);
+	    GPIOC->ODR &= ~(1U<<13U);
+	    delay(1000000);
+    }
+}
