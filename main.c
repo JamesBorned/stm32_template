@@ -138,7 +138,7 @@ void DrawChess(){
   }
 }
 
-/*int __attribute((noreturn)) main(void) {
+//int __attribute((noreturn)) main(void) {
 	#if 0
 	// Enable clock for AFIO
 	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
@@ -155,6 +155,24 @@ void DrawChess(){
 
     GPIOC->CRH = GPIOC->CRH & ~(GPIO_CRH_CNF15 | GPIO_CRH_MODE15) | GPIO_CRH_MODE15_1;
     GPIOC->ODR |= GPIO_ODR_ODR15; //enable PC15 Pull-up (for UP)
+
+	//RB11=RX->Input pull-up
+	//RB10=TX->Alternate func. push-pull
+	GPIOB->CRH &= GPIO_CRH_CNF10;
+	GPIOB->CRH |= GPIO_CRH_CNF10_1;
+	GPIOB->CRH &= GPIO_CRH_MODE10; //mode10=01
+	GPIOB->CRH |= GPIO_CRH_MODE10_0;
+
+
+
+
+
+
+
+
+
+
+
 
     GPIOA->CRL = GPIOA->CRL & ~(GPIO_CRL_CNF0 | GPIO_CRL_MODE0) | GPIO_CRL_MODE0_1;
     GPIOA->ODR |= GPIO_ODR_ODR0; //enable PC14 Pull-up (for DOWN)
@@ -217,7 +235,7 @@ void DrawChess(){
 	NVIC_EnableIRQ(TIM2_IRQn);
 	TIM2->CR1 |= TIM_CR1_CEN;
 	#endif
-
+	#if 0
 	SPI1_Init();
 	GPIOA->ODR &= ~GPIO_ODR_ODR4; // CS=0
 	GPIOA->ODR &= ~GPIO_ODR_ODR2; // RESET=0 - аппаратный сброс
@@ -239,7 +257,8 @@ void DrawChess(){
 	for (int i=0; i<133; ++i){
 		dat(0xFF);
 	}
-	}
+	#endif
+	//}
 	
 
 	/*_Bool btn_prev_state = 0;
@@ -263,10 +282,10 @@ void DrawChess(){
 		btn_prev_state = btn_state;
 		delay_us(10000); // 10ms
 	}*/
-	while(1){
-		__NOP();
-	}
-}
+//	while(1){
+		//__NOP();
+	//}
+//}
 
 void TIM2_IRQHandler(void){
 	if(TIM2->SR & TIM_SR_CC1IF){
@@ -276,8 +295,30 @@ void TIM2_IRQHandler(void){
 		GPIOC->BSRR = ((GPIOC->ODR & GPIO_ODR_ODR13) << 16) | (~GPIOC->ODR & GPIO_ODR_ODR13);
 		TIM2->SR &= ~TIM_SR_UIF;
 	}
-}*/
+}
 
+int main(void) {
+	//Enable clock for GPIOB
+	RCC->APB2ENR|=RCC_APB2ENR_IOPBEN;
+	RCC->APB1ENR|=RCC_APB1ENR_USART3EN;
+	//RB11=RX->Input pull-up
+	//RB10=TX->Alternate func. push-pull
+	GPIOB->CRH &= GPIO_CRH_CNF10;
+	GPIOB->CRH |= GPIO_CRH_CNF10_1;
+	GPIOB->CRH &= GPIO_CRH_MODE10; //mode10=01
+	GPIOB->CRH |= GPIO_CRH_MODE10_0;
+
+	GPIOB->CRH &= GPIO_CRH_CNF11;
+	GPIOB->CRH |= GPIO_CRH_CNF11_1;
+	GPIOB->CRH &= ~GPIO_CRH_MODE11; //mode10=01
+
+	GPIOB->ODR |= GPIO_ODR_ODR11;
+
+	//Baud rate=9600pbs
+	USART3->BRR = (1875 << 4);
+	USART3->CR1|=USART_CR1_UE|USART_CR1_TE|USART_CR1_RE;
+}
+#if 0
 int main(void) {
 	// Enable clock for GPIOC
 	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
@@ -300,7 +341,7 @@ int main(void) {
   cmd(0xA6); // Normal color, A7 = inverse color
   cmd(0xAF); // Display on
   cmd(0x40 | 0x00); // Set start line address (Lines 0x00...0x3F)
-  memset(LCD_Buf, 0, sizeof(int8_t) * 8 * 128);
+  //memset(LCD_Buf, 0, sizeof(int8_t) * 8 * 128);
   for(int k=0; k<=7; k++){ // Clear DRAM
     cmd(0xB0 | k); // Set Page 0 (Pages 0x00...0x0F)
     for(int i=0; i<=127; i++){
@@ -321,7 +362,7 @@ int main(void) {
       DrawPixel(i,j);
   */
 
-  DrawChess();
+  //DrawChess();
   
   //delay(10000000);
   //cmd(0x40 | 0x01); // Set start line address (Lines 0x00...0x3F)
@@ -333,3 +374,4 @@ int main(void) {
 	    delay(1000000);
     }
 }
+#endif
